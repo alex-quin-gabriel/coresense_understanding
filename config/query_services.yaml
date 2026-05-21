@@ -1,26 +1,22 @@
-all_triples:
-    query_file: get_all_triples.sparql
+query_services:
+  modelet_exists:
+      query_file: modelet_exists.sparql
 
-robot_pose:
-    query_file: get_robot_pose.sparql
+  concept_query:
+      query_file: get_concepts.sparql
 
-count_triples:
-    query_file: count_triples.sparql
+  representation_class_query:
+      query_file: get_representation_classes.sparql
 
-person_exists:
-    query_file: person_exists.sparql
+  formalism_query:
+      query_file: get_formalisms.sparql
 
-modelet_exists:
-    query_file: modelet_exists.sparql
+  property_query:
+      query_file: get_properties.sparql
 
-concept_query:
-    query_file: get_concepts.sparql
+  requirement_query:
+      query_file: get_requirements.sparql
 
-representation_class_query:
-    query_file: get_representation_classes.sparql
+  get_modelets:
+      query_file: get_modelets.sparql
 
-formalism_query:
-    query_file: get_formalisms.sparql
-
-get_modelets:
-    query_file: get_modelets.sparql

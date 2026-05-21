@@ -4,6 +4,7 @@ import lifecycle_msgs
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
+    IncludeLaunchDescription,
     DeclareLaunchArgument,
     EmitEvent,
     RegisterEventHandler,
@@ -11,10 +12,14 @@ from launch.actions import (
 from launch.events import matches_action
 from launch.substitutions import (
     LaunchConfiguration,
+    PathJoinSubstitution
 )
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
+from launch_ros.substitutions import (
+        FindPackageShare
+)
 
 
 def generate_launch_description():
@@ -25,69 +30,10 @@ def generate_launch_description():
     )
     log_level = LaunchConfiguration('log-level', default='info')
 
-    config = os.path.join(
-        get_package_share_directory('coresense_understanding_bringup'),
-        'config',
-        'kb_params.yaml',
-    )
-
-    triplestar_core_node = LifecycleNode(
-        package='triplestar_core',
-        executable='kb_node',
-        name='triplestar_core',
-        namespace='',
-        output='screen',
-        parameters=[config],
-        arguments=['--ros-args', '--log-level', ['triplestar_kb:=', log_level]],
-        emulate_tty=True,
-    )
-
-    triplestar_core_node_config_event = EmitEvent(
-        event=ChangeState(
-            lifecycle_node_matcher=matches_action(triplestar_core_node),
-            transition_id=lifecycle_msgs.msg.Transition.TRANSITION_CONFIGURE,  # type: ignore
-        )
-    )
-
-    triplestar_core_node_activate_event = EmitEvent(
-        event=ChangeState(
-            lifecycle_node_matcher=matches_action(triplestar_core_node),
-            transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE,  # type: ignore
-        )
-    )
-
-    marker_publisher_node = Node(
-        package='triplestar_core',
-        executable='kb_marker_publisher',
-        name='marker_publisher',
-        namespace='',
-        output='screen',
-    )
-
-    viz_node = Node(
-        package='triplestar_viz',
-        executable='kb_visualizer_node',
-        name='visualizer_node',
-        namespace='triplestar_core',
-        parameters=[
-            {
-                'store_path': '/tmp/triplestar_core'  # Add this line
-            }
-        ],
-        output='screen',
-    )
-
-    _start_marker_publisher = RegisterEventHandler(
-        OnStateTransition(
-            target_lifecycle_node=triplestar_core_node,
-            goal_state='active',
-            entities=[marker_publisher_node],
-        )
-    )
 
     coresense_vampire_node = Node(
         package='coresense_vampire',
-        executable='mynode.py',
+        executable='ros_vampire.py',
         name='coresense_vampire',
         namespace='',
         output='screen',
@@ -100,15 +46,16 @@ def generate_launch_description():
         namespace='',
         output='screen',
     )
+
+
     return LaunchDescription(
         [
             log_level_arg,
-            triplestar_core_node,
-            triplestar_core_node_config_event,
-            triplestar_core_node_activate_event,
+            IncludeLaunchDescription(
+                PathJoinSubstitution([FindPackageShare('coresense_bringup'), 'launch', 'kb.launch.py']),
+                launch_arguments={'bringup_package': 'coresense_understanding_bringup'}.items()
+            ),
             coresense_vampire_node,
             coresense_understanding_node
-            # start_marker_publisher,
-            #viz_node,
         ]
     )

@@ -1,26 +1,8 @@
-triplestar_core:
-    ros__parameters:
-        store_path: "/tmp/triplestar_kb"
-        base_iri: "https://coresense.eu/understanding"
-
-        # Package whose share directory contains the KB configuration.
-        # The package must follow this layout convention:
-        #
-        #   <share>/templates/               - Jinja2 SPARQL insertion templates
-        #   <share>/queries/                 - SPARQL query files
-        #   <share>/preload/                 - RDF files to load at startup
-        #   <share>/config/subscribers.yaml
-        #   <share>/config/query_services.yaml
-        #
-        config_package: "coresense_understanding_bringup"
-
-        preload_files:
-            - sysml2.ttl
-            - iso.ttl
-            - cso.ttl
-            - uao.ttl
-            - floorplan.ttl
-            - annotated_data.ttl
-            - understanding.ttl
-            - wind_scenario.ttl
-            - decision_scenario.ttl
+store_path: "/tmp/triplestar_kb"
+base_iri: "https://coresense.eu/understanding"
+preload_files:
+  - sysml2.ttl
+  - iso.ttl
+  - cso.ttl
+  - uao.ttl
+  - understanding.ttl
