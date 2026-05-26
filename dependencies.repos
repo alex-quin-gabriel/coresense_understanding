@@ -1,0 +1,22 @@
+repositories:
+  coresense_msgs:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_msgs.git
+    version: main
+  coresense_bringup:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_bringup.git
+    version: main
+  coresense_understanding:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_understanding.git
+    version: main
+  coresense_vampire:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_vampire.git
+    version: main
+  triplestarkb:
+    type: git
+    url: https://github.com/CoreSenseEU/triplestar_kb.git
+    version: main
+
