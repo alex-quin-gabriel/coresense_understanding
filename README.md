@@ -114,7 +114,7 @@ This should work in any ROS2 distribution.
 ```
 This should be in a ROS parameter called `coresense_engine`.
 
-We have a set of example skills at: [coresense_understanding_examples](https://github.com/CoreSenseEU/coresense_understanding)
+We have a set of example skills at: [coresense_understanding_examples](https://github.com/CoreSenseEU/coresense_understanding_examples)
 
 ### Usage
 
