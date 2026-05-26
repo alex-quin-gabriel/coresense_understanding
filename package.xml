@@ -2,9 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>coresense_understanding_bringup</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="A.Gabriel@tudelft.nl">Alex Quin Gabriel</maintainer>
+  <version>0.8.0</version>
+  <description>Bringup package for CoreSense Understanding System</description>
+  <maintainer email="A.Gabriel@tudelft.nl">Alex Quin Averie Gabriel</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,8 +12,9 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
-  <depend>coresense_understanding</depend>
   <depend>coresense_bringup</depend>
+  <depend>coresense_vampire</depend>
+  <depend>coresense_understanding</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
