@@ -1,7 +1,7 @@
 #!/bin/sh
 export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get install -y python3-pip
-
-pip install pydantic pyoxigraph reasonable vcstool
-vcs import --input dependencies.repos ../
+mkdir templates
+sudo apt-get update
+sudo apt-get install -y python3-pip 
+pip install --user --break-system-packages vcstool
+vcs import --recursive --input dependencies.repos ../
