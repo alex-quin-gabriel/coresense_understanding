@@ -48,14 +48,10 @@ csu:hasProperty a rdf:Property;
   rdfs:domain cso:Modelet;
   rdfs:range csu:Property.
 
-csu:hasName a rdf:Property;
-  rdfs:domain csu:Property;
-  rdfs:range xsd:string.
-
-csu:hasType a rdf:Property;
+csu:hasClass a rdf:Property;
   rdfs:domain csu:Property;
   rdfs:range xsd:string.
 
 csu:hasValue a rdf:Property;
   rdfs:domain csu:Property;
-  rdfs:range rdf:Entity.
+  rdfs:range rdf:literal.

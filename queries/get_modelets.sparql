@@ -12,12 +12,12 @@ WHERE {
   OPTIONAL { ?modelet csu:hasRepresentationClass ?representationClass. }
   OPTIONAL {
     ?modelet csu:hasProperty ?property.
-    ?property csu:hasName ?propertyName;
-              csu:hasType ?propertyType;
-              csu:hasValue ?propertyValue.
+    ?property a ?propertyClass.
+    ?property csu:hasValue ?propertyValue.
   }
 }
 
+#    ?property csu:hasClass ?propertyClass;
 #  OPTIONAL { ?modelet csu:hasCreator ?creator. }
 #  OPTIONAL { ?modelet csu:hasLocation ?location. }
 #  OPTIONAL { ?modelet csu:hasScope ?scope. }

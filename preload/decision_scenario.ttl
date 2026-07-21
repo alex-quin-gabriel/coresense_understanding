@@ -1,4 +1,5 @@
 
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#>.
 @prefix sc: <https://coresense.eu/ont/scenarios#>.
 @prefix ds: <https://coresense.eu/ont/decision_system#>.
 @prefix cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>.
@@ -6,11 +7,17 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
 
-sc:given_cues_modelet a cso:Modelet;
-  csu:hasFormalism ds:cue_array_msg;
-  csu:hasRepresentationClass ds:cue_array_rc.
+csu:Ordered rdfs:subClassOf csu:Property.
 
-sc:given_alternatives_modelet a cso:Modelet;
+sc:given_cues_is_list a csu:Ordered;
+  csu:hasValue "true"^^xsd:boolean.
+
+sc:given_cues a cso:Modelet;
+  csu:hasFormalism ds:cue_array_msg;
+  csu:hasRepresentationClass ds:cue_array;
+  csu:hasProperty sc:given_cues_is_list.
+
+sc:given_alternatives a cso:Modelet;
   csu:hasFormalism ds:alternative_array_msg;
-  csu:hasRepresentationClass ds:choice_set_rc;
-  csu:hasRepresentationClass ds:alternative_array_rc.
+  csu:hasRepresentationClass ds:choice_set;
+  csu:hasRepresentationClass ds:alternative_array.

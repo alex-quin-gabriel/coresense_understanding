@@ -6,3 +6,4 @@ preload_files:
   - cso.ttl
   - uao.ttl
   - understanding.ttl
+  - decision_scenario.ttl

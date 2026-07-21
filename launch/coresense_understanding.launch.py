@@ -30,6 +30,14 @@ def generate_launch_description():
     )
     log_level = LaunchConfiguration('log-level', default='info')
 
+    coresense_requirement_enforcer_node = Node(
+        package='coresense_understanding',
+        executable='requirement_enforcer_node',
+        name='requirement_enforcer',
+        namespace='',
+        output='screen',
+    )
+
 
     coresense_vampire_node = Node(
         package='coresense_vampire',
@@ -55,6 +63,7 @@ def generate_launch_description():
                 PathJoinSubstitution([FindPackageShare('coresense_bringup'), 'launch', 'kb.launch.py']),
                 launch_arguments={'bringup_package': 'coresense_understanding_bringup'}.items()
             ),
+            coresense_requirement_enforcer_node,
             coresense_vampire_node,
             coresense_understanding_node
         ]

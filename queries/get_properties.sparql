@@ -3,7 +3,6 @@ PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob
 
 SELECT *
 WHERE {
-  ?property rdf:type csu:Property;
-  }
+  ?propertyClass a csu:Property;
 }
 
