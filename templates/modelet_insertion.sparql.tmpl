@@ -1,0 +1,35 @@
+PREFIX fn: <http://triplestar.local/function/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>
+PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+
+# Example SPARQL insertion template using Jinja2 syntax.
+#
+# The 'msg' variable contains the incoming ROS message.
+# Use the rdf filter to convert ROS values to RDF literals.
+#
+# Customize this template for your specific message type and topic.
+
+INSERT DATA {
+  fn:get_ID({{msg}}) rdf:typ cso:Modelet;
+    csu:hasFormalism sensor_msgs_Image_msg;
+    csu:hasRepresentationClass image_rc;
+    csu:hasRepresentationClass {{ msg.encoding }}_rc;
+    csu:hasCreationTime {{ msg.header.stamp | rdf }};
+    csu:fromFrame {{ msg.header.frame_id | rdf }};
+    csu:hasProperty image_is_bigendian_property;
+    csu:hasProperty image_width_property;
+    csu:hasProperty image_height_property.
+   image_is_bigendian_property cso:Property;
+    csu:hasType "uint8";
+    csu:hasValue {{ msg.is_bigendian | rdf }}.
+   image_width_property cso:Property;
+    csu:hasType "uint8";
+    csu:hasValue {{ msg.width | rdf }}.
+   image_height_property cso:Property;
+    csu:hasType "uint8";
+    csu:hasValue {{ msg.height | rdf }}.
+}
+
