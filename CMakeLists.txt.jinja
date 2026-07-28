@@ -14,7 +14,9 @@ find_package(btcpp_ros2_interfaces REQUIRED)
 
 find_package(triplestar_msgs REQUIRED)
 
-find_package(sensor_msgs REQUIRED)
+{% for modelet in modelets %}
+find_package({{ modelet.package }} REQUIRED)
+{% endfor %}
 
 
 if(BUILD_TESTING)
@@ -33,28 +35,34 @@ set(DEPENDENCIES
   behaviortree_ros2::behaviortree_ros2
   ${btcpp_ros2_interfaces_TARGETS}
   ${triplestar_msgs_TARGETS}
-  ${sensor_msgs_TARGETS}
+{% for modelet in modelets %}
+  ${ {{- modelet.package }}_TARGETS}
+{% endfor %}
 )
 
-add_library(get_range_modelet_plugin SHARED src/get_range_modelet.cpp)
-target_compile_definitions(get_range_modelet_plugin PRIVATE  BT_PLUGIN_EXPORT )
-target_link_libraries(get_range_modelet_plugin
+{% for modelet in modelets %}
+add_library(get_{{ modelet.name }}_modelet_plugin SHARED src/get_{{ modelet.name }}_modelet.cpp)
+target_compile_definitions(get_{{ modelet.name }}_modelet_plugin PRIVATE  BT_PLUGIN_EXPORT )
+target_link_libraries(get_{{ modelet.name }}_modelet_plugin
   ${pluginlib_TARGETS}
   ${DEPENDENCIES}
   ament_index_cpp::ament_index_cpp
 )
 
-target_include_directories(get_range_modelet_plugin PUBLIC
+target_include_directories(get_{{ modelet.name }}_modelet_plugin PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
+{% endfor %}
 
 
 ###############
 ### Install targets and directories
 install(TARGETS
-  get_range_modelet_plugin
+{% for modelet in modelets %}
+  get_{{ modelet.name }}_modelet_plugin
+{% endfor %}
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -68,7 +76,9 @@ install(DIRECTORY
 
 # Install plugins for other packages to load
 install(TARGETS
-  get_range_modelet_plugin
+{% for modelet in modelets %}
+  get_{{ modelet.name }}_modelet_plugin
+{% endfor %}
   LIBRARY DESTINATION share/${PROJECT_NAME}/bt_plugins
   ARCHIVE DESTINATION share/${PROJECT_NAME}/bt_plugins
   RUNTIME DESTINATION share/${PROJECT_NAME}/bt_plugins

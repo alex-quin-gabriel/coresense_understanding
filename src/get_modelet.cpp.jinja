@@ -2,14 +2,14 @@
 
 #include "behaviortree_ros2/plugins.hpp"
 
-#include <coresense_modelet_interfaces/get_range_modelet.hpp>
+#include <coresense_modelet_interfaces/get_{{ name }}_modelet.hpp>
 
-void GetRangeModeletNode::set_coresense_parameter() {
-  const std::string path = ament_index_cpp::get_package_share_directory("coresense_modelet_interfaces") + "/config/get_range_modelet.json";
+void Get{{ name_camel }}ModeletNode::set_coresense_parameter() {
+  const std::string path = ament_index_cpp::get_package_share_directory("coresense_modelet_interfaces") + "/config/get_{{ name }}_modelet.json";
   const std::ifstream input_stream(path, std::ios_base::binary);
 
   if (input_stream.fail()) {
-    throw std::runtime_error("Failed to open get_range_modelet.json");
+    throw std::runtime_error("Failed to open get_{{ name }}_modelet.json");
   }
   std::stringstream buffer;
   buffer << input_stream.rdbuf();
@@ -25,7 +25,7 @@ void GetRangeModeletNode::set_coresense_parameter() {
    * @return false if the request should not be sent. In that case,
    * RosActionNode::onFailure(INVALID_GOAL) will be called.
    */
-bool GetRangeModeletNode::setRequest(Request::SharedPtr& request) {
+bool Get{{ name_camel }}ModeletNode::setRequest(Request::SharedPtr& request) {
   std::string modelet_id;
   getInput("modelet_id", modelet_id);
   triplestar_msgs::msg::QuerySubstitution substitution;
@@ -44,29 +44,19 @@ int parse_int(std::string rdf_string) {
   return stoi(rdf_string);
 }
 
-sensor_msgs::msg::Range create_modelet_from_json(std::string json_string) {
-  sensor_msgs::msg::Range modelet;
+{{ package }}::msg::{{ name_camel }} create_modelet_from_json(std::string json_string) {
+  {{ package }}::msg::{{ name_camel }} modelet;
   std::stringstream ss;
   ss << json_string;
   nlohmann::json result = nlohmann::json::parse(ss);
   for (nlohmann::json binding : result["results"]["bindings"]) {
     std::string modelet_id = binding["modelet_id"]["value"].get<std::string>();
-    //TODO check if field_type is basic type, otherwise run another parser?
+    {% for field in fields %}
+//TODO check if field_type is basic type, otherwise run another parser?
 //TODO implement recursive parser
-    modelet.radiation_type = parse_int(binding[modelet_id + "radiation_type"]["value"].get<std::string>());
-    //TODO check if field_type is basic type, otherwise run another parser?
-//TODO implement recursive parser
-    modelet.field_of_view = parse_float(binding[modelet_id + "field_of_view"]["value"].get<std::string>());
-    //TODO check if field_type is basic type, otherwise run another parser?
-//TODO implement recursive parser
-    modelet.min_range = parse_float(binding[modelet_id + "min_range"]["value"].get<std::string>());
-    //TODO check if field_type is basic type, otherwise run another parser?
-//TODO implement recursive parser
-    modelet.max_range = parse_float(binding[modelet_id + "max_range"]["value"].get<std::string>());
-    //TODO check if field_type is basic type, otherwise run another parser?
-//TODO implement recursive parser
-    modelet.range = parse_float(binding[modelet_id + "range"]["value"].get<std::string>());
-      }
+    modelet.{{ field.name }} = parse_{{ field.type }}(binding[modelet_id + "{{ field.name }}"]["value"].get<std::string>());
+    {% endfor %}
+  }
   return modelet;
 
 }
@@ -75,8 +65,8 @@ sensor_msgs::msg::Range create_modelet_from_json(std::string json_string) {
    * 
    * It is up to the user to define if the action returns SUCCESS or FAILURE.
    */
-BT::NodeStatus GetRangeModeletNode::onResponseReceived(const Response::SharedPtr& response) {
-  //TODO turn json into range msg
+BT::NodeStatus Get{{ name_camel }}ModeletNode::onResponseReceived(const Response::SharedPtr& response) {
+  //TODO turn json into {{ name }} msg
   setOutput("modelet", create_modelet_from_json(response->result));
   return BT::NodeStatus::SUCCESS;
 }
@@ -86,11 +76,11 @@ BT::NodeStatus GetRangeModeletNode::onResponseReceived(const Response::SharedPtr
    *
    * It must return either SUCCESS or FAILURE.
    */
-BT::NodeStatus GetRangeModeletNode::onFailure(BT::ServiceNodeErrorCode error) {
+BT::NodeStatus Get{{ name_camel }}ModeletNode::onFailure(BT::ServiceNodeErrorCode error) {
     RCLCPP_ERROR(logger(), "Error: %d", error);
     return BT::NodeStatus::FAILURE;
 }
 
 
 // Register this node as a plugin with the BT factory
-CreateRosNodePlugin(GetRangeModeletNode, "GetRangeModelet");
+CreateRosNodePlugin(Get{{ name_camel }}ModeletNode, "Get{{ name_camel }}Modelet");

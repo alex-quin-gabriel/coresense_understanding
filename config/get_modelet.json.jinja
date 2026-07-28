@@ -1,0 +1,39 @@
+{
+  "name": "Get{{ name_camel }}Modelet",
+  "inputs": [
+    {
+      "name": "modelet_id",
+      "formalism" : "std::string",
+      "concepts": [],
+      "representation_classes": ["string", "id", "modelet_id"],
+      "requirements": []
+    }
+  ],
+  "engine_output": {
+    "name": "modelet",
+    "formalism" : "{{ name_camel }}",
+    "concepts": [
+{% for concept in concepts -%}
+      "{{ concept }}"
+      {% if not loop.last %}, {% endif %}
+{%- endfor %}
+    ],
+    "representation_classes": [
+{% for representation_class in representation_classes %}
+      "{{ representation_class }}"
+      {% if not loop.last %}, {% endif %}
+{% endfor %}
+    ],
+    "properties": [
+{% for property in properties %}
+      "{{ property }}"
+      {% if not loop.last %}, {% endif %}
+{% endfor %}
+    ]
+  },
+  "transit_properties": [],
+  "time_delay": 0.2,
+  "energy_cost": 0.0,
+  "resources_consumed": [],
+  "resources_blocked": []
+}

@@ -1,0 +1,33 @@
+{
+  "name": "GetRangeModelet",
+  "inputs": [
+    {
+      "name": "modelet_id",
+      "formalism" : "std::string",
+      "concepts": [],
+      "representation_classes": ["string", "id", "modelet_id"],
+      "requirements": []
+    }
+  ],
+  "engine_output": {
+    "name": "modelet",
+    "formalism" : "Range",
+    "concepts": [
+"first"
+      , "second"
+          ],
+    "representation_classes": [
+      "first"
+      ,       "second"
+          ],
+    "properties": [
+      "first"
+      ,       "second"
+          ]
+  },
+  "transit_properties": [],
+  "time_delay": 0.2,
+  "energy_cost": 0.0,
+  "resources_consumed": [],
+  "resources_blocked": []
+}
