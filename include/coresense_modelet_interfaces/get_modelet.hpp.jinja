@@ -12,13 +12,15 @@
 #include <filesystem>
 
 
-class Get{{ name_camel }}ModeletNode : public BT::RosServiceNode<triplestar_msgs::srv::SelectQuery>
+class Get{{ package }}_{{ name_camel }}ModeletNode : public BT::RosServiceNode<triplestar_msgs::srv::SelectQuery>
 {
 public:
-  explicit Get{{ name_camel }}ModeletNode(const std::string& name, const BT::NodeConfig& config,
+  explicit Get{{ package }}_{{ name_camel }}ModeletNode(const std::string& name, const BT::NodeConfig& config,
                const BT::RosNodeParams& params)
     : BT::RosServiceNode<triplestar_msgs::srv::SelectQuery>(name, config, params)
-  {}
+  {
+    setServiceName("/triplestar/query/get_modelets");
+  }
 
   /**
    * @brief Required method that creates list of BT ports
@@ -64,6 +66,7 @@ public:
    */
   BT::NodeStatus onFailure(BT::ServiceNodeErrorCode error) override;
 
+  {{ package }}::msg::{{ name_camel }} create_modelet_from_json(std::string json_string);
 
 private:
 

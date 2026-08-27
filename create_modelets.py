@@ -13,6 +13,28 @@ env.trim_blocks = True
 modelets = {
         'modelets': [
             {
+                'name': 'cue_array',
+                'name_camel': 'CueArray',
+                'package': 'decision_msgs',
+                'concepts': [
+                    'cues'
+                ],
+                'representation_classes': [
+                    'list'
+                ]
+            },
+            {
+                'name': 'alternative_array',
+                'name_camel': 'AlternativeArray',
+                'package': 'decision_msgs',
+                'concepts': [
+                    'alternatives'
+                ],
+                'representation_classes': [
+                    'list'
+                ]
+            },
+            {
                 'name': 'range',
                 'name_camel': 'Range',
                 'package': 'sensor_msgs',
@@ -24,28 +46,6 @@ modelets = {
                 ],
                 'properties': [
                     'first', 'second'
-                ],
-                'fields': [
-                    {
-                        'name': 'radiation_type',
-                        'type': 'int'
-                    },
-                    {
-                        'name': 'field_of_view',
-                        'type': 'float'
-                    }, 
-                    {
-                        'name': 'min_range',
-                        'type': 'float'
-                    }, 
-                    {
-                        'name': 'max_range',
-                        'type': 'float'
-                    }, 
-                    {
-                        'name': 'range',
-                        'type': 'float'
-                    } 
                 ]
             }
         ]
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             template = env.get_template(file)
             path, template_name = split(file)
             file_name = splitext(template_name)[0][4:]
-            target_file = join(path, 'get_' + modelet['name'] + '_' + file_name)
+            target_file = join(path, 'get_' + modelet['package']+ '_' + modelet['name'] + '_' + file_name)
 
             with open(target_file, 'w') as f:
                 f.write(template.render(modelet))

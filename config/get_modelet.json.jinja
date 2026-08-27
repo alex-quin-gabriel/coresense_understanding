@@ -1,9 +1,9 @@
 {
-  "name": "Get{{ name_camel }}Modelet",
+  "name": "Get{{ package }}_msg_{{ name_camel }}Modelet",
   "inputs": [
     {
       "name": "modelet_id",
-      "formalism" : "std::string",
+      "formalism" : "ros:msg:std_msgs/msg/String",
       "concepts": [],
       "representation_classes": ["string", "id", "modelet_id"],
       "requirements": []
@@ -11,7 +11,7 @@
   ],
   "engine_output": {
     "name": "modelet",
-    "formalism" : "{{ name_camel }}",
+    "formalism" : "ros:msg:{{package}}/msg/{{ name_camel }}",
     "concepts": [
 {% for concept in concepts -%}
       "{{ concept }}"
