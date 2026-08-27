@@ -26,7 +26,7 @@ public:
   bool dirty;
   std::chrono::time_point<std::chrono::system_clock> last_update;
   std::map<std::string, bool> updated;
-  std::list<std::string> klasses = {"property", "concept", "formalism", "representation_class"};
+  std::list<std::string> klasses = {"property", "concept", "representation_class"};
   
   KnowledgeModel() {};
   void add_klass(std::string klass, std::string kb_response);

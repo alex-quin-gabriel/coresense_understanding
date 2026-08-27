@@ -1,13 +1,10 @@
 #include "coresense_understanding/vampire_interface.hpp"
+#include <iostream>
 namespace coresense::understanding::interfaces::vampire {
 
-std::vector<std::string> VampireInterface::parse_output(std::map<std::string, coresense::understanding::model::Engine> engines, std::string output) {
-  std::vector<std::string> trees;
-  //with label after 'for', with optional capturing group
-  //const std::regex answer_line_regex = std::regex("^% SZS answers Tuple \\[\\(?:(.*)\\)?\\|_\\] for [\\-\\w]+$");
+std::map<std::string, std::string> VampireInterface::parse_output(std::map<std::string, coresense::understanding::model::Engine> engines, std::string output) {
+  std::map<std::string, std::string> trees;
   const std::regex answer_line_regex = std::regex("^% SZS answers Tuple \\[(.*)\\|_\\] for");
-  //with label after 'for', with necessary capturing group
-  //const std::regex answer_line_regex = std::regex("^% SZS answers Tuple \\[(.*)\\|_\\] for [\\-\\w]+$");
   const std::regex answer_regex = std::regex("\\[\\w->(.*?)\\]\\|?");
   tinyxml2::XMLDocument doc;
   tinyxml2::XMLElement* rootXML = doc.NewElement("root");
@@ -27,7 +24,8 @@ std::vector<std::string> VampireInterface::parse_output(std::map<std::string, co
       for (std::sregex_token_iterator it(answers.begin(), answers.end(), answer_regex, 1); it != End; ++it) {
         std::string answer = *it;
         consume_answer(engines, map, answer);
-        trees.push_back(build_behavior_tree(map, answer));
+        std::cout << "Finished Consuming Answer, building tree" << std::endl;
+        trees["Understanding_Solution_" + answer] = build_behavior_tree(map, answer);
       }
     } else {
       // silently handle no match
@@ -37,7 +35,7 @@ std::vector<std::string> VampireInterface::parse_output(std::map<std::string, co
 }
 
 std::string VampireInterface::build_behavior_tree(std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> map, std::string root_id) {
-  return "<root BTCPP_format=\"4\">\n<BehaviorTree ID=\"Understanding Solution XYZ\">\n<Sequence>\n" + map[root_id]->print(map) + "\n</Sequence>\n</BehaviorTree>\n</root>";
+  return "<root BTCPP_format=\"4\">\n<BehaviorTree ID=\"Understanding_Solution_" +root_id + "\">\n<Sequence>\n" + map[root_id]->print(map) + "\n</Sequence>\n</BehaviorTree>\n</root>";
 }
 
 void VampireInterface::consume_answer(std::map<std::string, coresense::understanding::model::Engine> engines, std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> & map, std::string & answer) {
@@ -47,43 +45,10 @@ void VampireInterface::consume_answer(std::map<std::string, coresense::understan
   return;
 }
 
-//void VampireInterface::consume_answer_set(std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> & map, std::string & answer) {
-//  if (consume_exert(map, answer)) {
-//    consume_answer_set(map, answer);
-//  } else if (consume_subset(map, answer)) {
-//    consume_answer_set(map, answer);
-//  }
-//  return;
-//}
-
-//bool VampireInterface::consume_exert(std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> & map, std::string & answer) {
-//  // This reads an exert(engine, modelet_set) string and turns it into an object representation, recursively. This is the no-longer used set variant
-//  const std::regex exert_regex = std::regex("exert\\(([\\w-]+)\\,([\\w-]+)\\)");
-//  std::smatch match;
-//  // this does not yet handle parallel execution of nodes, which is why it was replaced by the set-less version below.
-//  if (std::regex_search(answer, match, exert_regex)) {
-//    if (map.find(match[1]) == map.end()) {
-//      map[match[1]] = std::make_shared<ns_graph::ConceptNode>(match[1]);
-//      //std::cout << "Created ConceptNode " << match[1] << std::endl;
-//    }
-//    if (map.find(match[2]) == map.end()) {
-//      map[match[2]] = std::make_shared<ns_graph::ConceptNode>(match[2]);
-//      //std::cout << "Created ConceptNode " << match[2] << std::endl;
-//    }
-//    auto n = std::make_shared<ns_graph::ExertNode>(match); 
-//    map[n->id] = n;
-//    //std::cout << "Created ExertNode " << n->id << " from exert(" << match[1] << "," << match[2] << ")" << std::endl;
-//    answer = std::regex_replace(answer, exert_regex, n->id, std::regex_constants::format_first_only);
-//    return true;
-//  } else {
-//    return false;
-//  }
-//}
-
 bool VampireInterface::consume_exertn(std::map<std::string, coresense::understanding::model::Engine> engines, std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> & map, std::string & answer) {
   // This reads exert[0-9]+(engine, modelet1, modelet2, ..., modeletN) string and turns it into an object representation, recursively. This is the new set-less variant
-  const std::regex exert_regex = std::regex("exert(\\d+)\\(engine_([\\w-]+)([,\\w-]+)\\)");
-  const std::regex modelet_regex = std::regex("([\\w-]+)");
+  const std::regex exert_regex = std::regex("exert(\\d+)\\('(coresense:engine:[\\w-]+)',([':,\\w-]+)\\)");
+  const std::regex inputs_regex = std::regex("'?([:\\w-]+)'?");
   std::smatch match;
   if (std::regex_search(answer, match, exert_regex)) {
     //int modelet_count = stoi(match[1]);
@@ -93,20 +58,29 @@ bool VampireInterface::consume_exertn(std::map<std::string, coresense::understan
     // we'll have to test this
     if (map.find(match[2]) == map.end()) {
       // engine
-      auto n = std::make_shared<ns_graph::ExertnNode>(engines[match[2]]); 
-      map[n->id] = n;
-      //std::cout << "created ExertnNode " << n->id << " from " << match[0] << std::endl;
-      answer = std::regex_replace(answer, exert_regex, n->id, std::regex_constants::format_first_only);
+      auto exert_node = std::make_shared<ns_graph::ExertnNode>(engines[match[2]]); 
+      map[exert_node->id] = exert_node;
+      //std::cout << "created ExertnNode " << exert_node->id << " with name " << exert_node->name << " from " << match[0] << std::endl;
+      answer = std::regex_replace(answer, exert_regex, exert_node->id, std::regex_constants::format_first_only);
       const std::sregex_token_iterator End;
-      std::string modelets = match[3];
-      for (std::sregex_token_iterator it(modelets.begin(), modelets.end(), modelet_regex, 1); it != End; ++it) {
-        std::string modelet = *it;
-        if (map.find(modelet) == map.end()) {
+      std::string inputs = match[3];
+      auto template_iterator = exert_node->engine.inputs.begin();
+      for (std::sregex_token_iterator it(inputs.begin(), inputs.end(), inputs_regex, 1); it != End; ++it) {
+        std::string formalism = (*template_iterator).formalism; ++template_iterator;
+        std::string input = *it;
+        if (map.find(input) == map.end()) {
           // this has to be a modelet because it hasn't been added to the map yet, as an engine-id would have been
-          map[modelet] = std::make_shared<ns_graph::ConceptNode>(modelet);
-          //std::cout << "Created ConceptNode " << modelet << std::endl;
+          auto position = input.rfind(":")+1;
+          auto size = input.size() - position;
+
+          auto modelet = std::make_shared<ns_graph::ConceptNode>(input.substr(position, size), formalism);
+          map[modelet->id] = modelet; 
+          //std::cout << "Created ConceptNode " << modelet->id << " with name " << map[modelet->id]->name << " with formalism "<< formalism << std::endl;
+          exert_node->add_node(map[modelet->id]);
+        } else {
+          exert_node->add_node(map[input]);
+
         }
-        n->add_node(map[modelet]);
       }
     }
     return true;
@@ -114,30 +88,6 @@ bool VampireInterface::consume_exertn(std::map<std::string, coresense::understan
     return false;
   }
 }
-
-//bool VampireInterface::consume_subset(std::unordered_map<std::string, std::shared_ptr<ns_graph::GraphNode>> & map, std::string & answer) {
-//  const std::regex subset_regex = std::regex("s\\(([\\w-]+)\\,([\\w-]+)\\)");
-//  std::smatch match;
-//  if (std::regex_search(answer, match, subset_regex)) {
-//    if (map.find(match[1]) == map.end()) {
-//      map[match[1]] = std::make_shared<ns_graph::ConceptNode>(match[1]);
-//      //std::cout << "created ConceptNode " << match[1] << std::endl;
-//    }
-//    if (map.find(match[2]) == map.end()) {
-//      map[match[2]] = std::make_shared<ns_graph::ConceptNode>(match[2]);
-//      //std::cout << "Created ConceptNode " << match[2] << std::endl;
-//    }
-//    auto n = std::make_shared<ns_graph::SubsetNode>(match);
-//    map[n->id] = n;
-//    //std::cout << "Created SubsetNode " << n->id << " from s(" << match[1] << "," << match[2] << ")" << std::endl;
-//    answer = std::regex_replace(answer, subset_regex, n->id, std::regex_constants::format_first_only);
-//    return true;
-//  } else {
-//    return false;
-//  }
-//}
-
-
 
 tinyxml2::XMLElement * VampireInterface::add_parallel_node(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* target_node) {
   tinyxml2::XMLElement * parallel_node = doc.NewElement("Parallel");

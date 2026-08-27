@@ -22,6 +22,8 @@
 #include "coresense_msgs/srv/add_to_session.hpp"
 #include "coresense_msgs/srv/remove_from_session.hpp"
 
+#include "coresense_msgs/msg/understanding_solution.hpp"
+
 #include "coresense_understanding/model.hpp"
 #include "coresense_understanding/agent_model.hpp"
 #include "coresense_understanding/knowledge_model.hpp"
@@ -94,17 +96,17 @@ public:
       }
     understand_action_server_ptr = rclcpp_action::create_server<UnderstandAction>(
       this,
-      "/understanding/understand",
+      "/coresense/understanding/understand",
       std::bind(&UnderstandingSystemNode::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
       std::bind(&UnderstandingSystemNode::cancel_goal, this, std::placeholders::_1),
       std::bind(&UnderstandingSystemNode::handle_accepted, this, std::placeholders::_1));
       RCLCPP_INFO(get_logger(), "Created understanding action");
     }
     read_logic();
-    start_session_server_ptr = create_service<coresense_msgs::srv::StartSession>("/understanding/start_session", std::bind(&UnderstandingSystemNode::start_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    end_session_server_ptr = create_service<coresense_msgs::srv::EndSession>("/understanding/end_session", std::bind(&UnderstandingSystemNode::end_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    mark_agent_server_ptr = create_service<std_srvs::srv::Trigger>("/understanding/mark_agent_model_dirty", std::bind(&UnderstandingSystemNode::mark_agent_model_dirty, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    mark_knowledge_server_ptr = create_service<std_srvs::srv::Trigger>("/understanding/mark_knowledge_model_dirty", std::bind(&UnderstandingSystemNode::mark_knowledge_model_dirty, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    start_session_server_ptr = create_service<coresense_msgs::srv::StartSession>("/coresense/understanding/start_session", std::bind(&UnderstandingSystemNode::start_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    end_session_server_ptr = create_service<coresense_msgs::srv::EndSession>("/coresense/understanding/end_session", std::bind(&UnderstandingSystemNode::end_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    mark_agent_server_ptr = create_service<std_srvs::srv::Trigger>("/coresense/understanding/mark_agent_model_dirty", std::bind(&UnderstandingSystemNode::mark_agent_model_dirty, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    mark_knowledge_server_ptr = create_service<std_srvs::srv::Trigger>("/coresense/understanding/mark_knowledge_model_dirty", std::bind(&UnderstandingSystemNode::mark_knowledge_model_dirty, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     //test_understanding_service_server_ptr = create_service<coresense_msgs::srv::TestUnderstanding>("/understanding/run_test", std::bind(&UnderstandingSystemNode::test_understanding, this, std::placeholders::_1, std::placeholders::_2));
     //test_reasoner();
     RCLCPP_INFO(get_logger(), "Waiting for 2.5s");
@@ -427,7 +429,7 @@ private:
     } else {
       RCLCPP_ERROR(get_logger(), "Action server not available after waiting or rejected goal (this needs better error handling)");
       auto understanding_result = std::make_shared<UnderstandAction::Result>();
-      understanding_result->result = "Reasoner not available";
+      understanding_result->error = "Reasoner not available";
       understanding_goal_handle->abort(understanding_result);
     } 
   }
@@ -447,7 +449,8 @@ private:
     auto goal_msg = QueryReasonerAction::Goal();
     goal_msg.session_id = session_id;
     goal_msg.query = query;
-    goal_msg.configuration = config;
+    goal_msg.configuration = "--input_syntax tptp";
+    //goal_msg.configuration = config;
     RCLCPP_INFO(get_logger(), "Sending goal");
 
     auto send_goal_options = rclcpp_action::Client<QueryReasonerAction>::SendGoalOptions();
@@ -455,7 +458,7 @@ private:
       if (!goal_handle) {
         RCLCPP_WARN(get_logger(), "Query goal was rejected by reasoner");
         auto understanding_result = std::make_shared<UnderstandAction::Result>();
-        understanding_result->result = "Reasoner rejected query";
+        understanding_result->error = "Reasoner rejected query";
         auto id = goal_handle->get_goal_id();
         if (!(goals[id] == nullptr)) {
           goals[id]->abort(understanding_result);
@@ -488,14 +491,16 @@ private:
             RCLCPP_WARN(get_logger(), "Result message is: %s", wrapped_result.result->code_msg.c_str());
             RCLCPP_WARN(get_logger(), "Reasoner output is:\n%s", wrapped_result.result->result.c_str());
           }
-          std::vector<std::string> trees = vampire_interface.parse_output(agent_model.engines, wrapped_result.result->result);
-          std::stringstream result;
-          for (std:: string tree : trees) {
-            result << tree;
-          }
-          RCLCPP_INFO(get_logger(), "Resulting tree is:\n%s", result.str().c_str());
+          std::map<std::string, std::string> trees = vampire_interface.parse_output(agent_model.engines, wrapped_result.result->result);
 
-          understanding_result->result = result.str();
+          for (auto [id, tree] : trees) {
+            auto understanding_solution = coresense_msgs::msg::UnderstandingSolution();
+            understanding_solution.id = id;
+            understanding_solution.tree = tree;
+            RCLCPP_INFO(get_logger(), "Resulting tree is:\n%s", tree.c_str());
+            understanding_result->solutions.push_back(understanding_solution);
+          }
+
           if (!(goals[wrapped_result.goal_id] == nullptr)) {
             goals[wrapped_result.goal_id]->succeed(understanding_result);
           }
@@ -503,7 +508,7 @@ private:
         }
         case rclcpp_action::ResultCode::ABORTED: {
           RCLCPP_ERROR(get_logger(), "Goal was aborted");
-          understanding_result->result = "Reasoner aborted query, aborting understanding goal.";
+          understanding_result->error = "Reasoner aborted query, aborting understanding goal.";
           if (!(goals[wrapped_result.goal_id] == nullptr)) {
             goals[wrapped_result.goal_id]->abort(understanding_result);
           }
@@ -511,7 +516,7 @@ private:
         }
         case rclcpp_action::ResultCode::CANCELED: {
           RCLCPP_ERROR(get_logger(), "Goal was canceled");
-          understanding_result->result = "Query goal to reasoner got cancelled, cancelling understanding goal.";
+          understanding_result->error = "Query goal to reasoner got cancelled, cancelling understanding goal.";
           if (!(goals[wrapped_result.goal_id] == nullptr)) {
             goals[wrapped_result.goal_id]->canceled(understanding_result);
           }
@@ -519,7 +524,7 @@ private:
         }
         default: {
           RCLCPP_ERROR(get_logger(), "Unknown result code");
-          understanding_result->result = "Reasoner reacted with unknown result code, aborting understanding goal.";
+          understanding_result->error = "Reasoner reacted with unknown result code, aborting understanding goal.";
           if (!(goals[wrapped_result.goal_id] == nullptr)) {
             goals[wrapped_result.goal_id]->abort(understanding_result);
           }

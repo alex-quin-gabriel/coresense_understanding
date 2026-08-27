@@ -22,6 +22,7 @@ public:
   ~GraphNode() {};
   virtual std::string print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map)=0;
   virtual std::string get_id()=0;
+  virtual std::string get_formalism()=0;
 };
 
 //class SubsetNode : public GraphNode {
@@ -47,10 +48,13 @@ public:
 
 class ConceptNode : public GraphNode {
 public:
-  ConceptNode(std::string modelet_name);
+  std::string formalism;
+  ConceptNode(std::string modelet_name, std::string formalism);
   ~ConceptNode() {};
   std::string print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) override;
   std::string get_id() override;
+  std::string get_formalism() override;
+  std::string print_kb_fetch();
 };
 
 class ExertnNode : public GraphNode {
@@ -63,6 +67,7 @@ public:
   ~ExertnNode() {};
   std::string print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) override;
   std::string get_id() override;
+  std::string get_formalism() override;
   void add_node(std::shared_ptr<GraphNode> & node);
 };
 

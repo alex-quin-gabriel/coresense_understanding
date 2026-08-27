@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+
+import rclpy
+from time import sleep
+from rclpy.node import Node
+from rclpy.action import ActionClient
+
+import std_msgs.msg
+import coresense_msgs.msg
+from coresense_msgs.action import Understand
+from coresense_msgs.srv import RegisterBehaviorTree, StartSession
+from btcpp_ros2_interfaces.action import ExecuteTree
+
+class ExampleUserNode(Node):
+    def __init__(self):
+        super().__init__('ExampleUserNode')
+        self.solutions = []
+
+        self.start_session_client = self.create_client(StartSession, '/coresense/understanding/start_session')
+        self.understanding_query_client = ActionClient(self, Understand, '/coresense/understanding/understand')
+        self.register_bt_client = self.create_client(RegisterBehaviorTree, '/bt_controller/register_bt')
+        self.run_bt_client = ActionClient(self, ExecuteTree, '/coresense/run_bt')
+
+        while not self.start_session_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+
+    
+    def start_session(self):
+        request = StartSession.Request()
+        future = self.start_session_client.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+        return future.result()
+
+    def query_understanding(self, session_id, query):
+        goal_msg = Understand.Goal()
+        goal_msg.session_id = session_id
+        goal_msg.target_modelet = query
+        self.understanding_query_client.wait_for_server()
+        self.understanding_accept_future = self.understanding_query_client.send_goal_async(goal_msg)
+        self.understanding_accept_future.add_done_callback(self.understanding_goal_cb)
+
+    def understanding_goal_cb(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info("Understanding Goal was rejected.")
+            return
+        self.get_logger().info("Understanding Goal accepted.")
+        self.understanding_result_future = goal_handle.get_result_async()
+        self.understanding_result_future.add_done_callback(self.understanding_result_cb)
+
+    def understanding_result_cb(self, future):
+        self.get_logger().info("Understanding Goal finished.")
+        self.solutions = future.result().result.solutions
+        for solution in self.solutions:
+            self.get_logger().info("Resulting BT: {} \n{}".format(solution.id, solution.tree))
+            self.register_bt(solution.tree)
+
+    def register_bt(self, bt):
+        request = RegisterBehaviorTree.Request()
+        request.tree = bt
+        self.register_bt_future = self.register_bt_client.call_async(request)
+        self.register_bt_future.add_done_callback(self.register_bt_cb)
+
+    def register_bt_cb(self, future):
+        if future.result().success:
+            self.get_logger().info("Registered BT.")
+            self.run_bt(self.solutions[0].id)
+        else:
+            self.get_logger().info("Registering BT failed.")
+
+
+    def run_bt(self, tree_id):
+        goal_msg = ExecuteTree.Goal()
+        goal_msg.target_tree = tree_id
+        self.run_bt_client.wait_for_server()
+        self.get_logger().info("Running {}.".format(tree_id))
+        self.run_bt_accept_future = self.run_bt_client.send_goal_async(goal_msg)
+        self.run_bt_accept_future.add_done_callback(self.run_bt_cb)
+ 
+    def run_bt_cb(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info("Run BT Goal was rejected.")
+            return
+        self.get_logger().info("Run BT Goal accepted.")
+        self.bt_result_future = goal_handle.get_result_async()
+        self.bt_result_future.add_done_callback(self.run_bt_result_cb)
+
+    def run_bt_result_cb(self, future):
+        self.get_logger().info("Run BT Goal finished.")
+        rclpy.shutdown()
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = ExampleUserNode()
+
+    session_id = node.start_session().session_id
+    node.get_logger().info("Session ID: {}".format(session_id))
+    sleep(2)
+    query = """?[M : modelet]: ( modelet_has_representation_class(M, 'coresense:representation_class:decision') & modelet_has_property(M, 'coresense:property:absolute_size', '"1"^^xsd:integer'))"""
+    node.query_understanding(session_id, query)
+    rclpy.spin(node)
+    node.destroy_node()
+
+if __name__ == '__main__':
+    main()

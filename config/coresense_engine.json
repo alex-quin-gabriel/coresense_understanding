@@ -3,7 +3,7 @@
   "inputs": [
     {
       "name": "query",
-      "formalism": "understanding_action_request",
+      "formalism": "coresense_msgs/action/Understand#Request",
       "concepts": [],
       "representation_classes": ["tptp_tff", "logic"],
       "requirements": [],
@@ -12,7 +12,7 @@
   ],
   "engine_output": {
     "name": "bt_xml",
-    "formalism" : "understanding_action_response",
+    "formalism" : "coresense_msgs/action/Understand#Response",
     "concepts": [],
     "representation_classes": ["behaviour_tree", "plan"],
     "properties": [

@@ -103,6 +103,7 @@ ament_python_install_package(${PROJECT_NAME})
 # install python node
 install(PROGRAMS
   scripts/requirement_enforcer_node
+  scripts/example_user_node
   DESTINATION lib/${PROJECT_NAME})
 
 # install cpp node

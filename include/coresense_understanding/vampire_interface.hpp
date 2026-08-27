@@ -30,7 +30,7 @@ private:
   tinyxml2::XMLElement * add_sequence_node(tinyxml2::XMLDocument doc, tinyxml2::XMLElement* target_node);
 public:
   VampireInterface() {};
-  std::vector<std::string> parse_output(std::map<std::string, coresense::understanding::model::Engine> engines, std::string output);
+  std::map<std::string, std::string> parse_output(std::map<std::string, coresense::understanding::model::Engine> engines, std::string output);
   
 };
 

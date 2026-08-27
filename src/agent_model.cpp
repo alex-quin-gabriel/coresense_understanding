@@ -1,18 +1,20 @@
 
 #include "coresense_understanding/agent_model.hpp"
-
+#include <iostream>
 namespace coresense::understanding::agent_model {
 
 std::string create_relation_limit2(std::string relation, std::string instance_klass, std::string instance, std::string set_klass,  std::set<std::string> set) {
   std::stringstream ss;
-  ss << "tff(axiom_" << instance << "_" << relation << ", axiom," << std::endl 
+  auto position = instance.find_last_of(":/") + 1;
+  auto count = instance.find_first_of("#.") - position;
+  ss << "tff(axiom_" << instance.substr(position, count) << "_" << relation << ", axiom," << std::endl 
      << "  ![X : " << set_klass << "]: " << std::endl 
      << "  (" << std::endl
-     << "    " << relation << "(X, " << instance_klass << "_" << instance << ")" << std::endl
+     << "    " << relation << "(X, '" << instance << "')" << std::endl
      << "    =>" << std::endl
      << "    (";
   for (std::string name : set) {
-    ss << std::endl <<"      (X = " << set_klass << "_" << name << ")" << std::endl << "      |"; 
+    ss << std::endl << "      (X = '" << name << "')" << std::endl << "      |"; 
   }
   ss.seekp(-3, ss.cur);
   ss << ")" << std::endl << "  )" << std::endl << ")." << std::endl;
@@ -21,16 +23,18 @@ std::string create_relation_limit2(std::string relation, std::string instance_kl
 
 std::string create_relation_limit3(std::string relation, std::string instance_klass, std::string instance, std::string set_klass,  std::set<std::pair<std::string, std::string>> set) {
   std::stringstream ss;
-  ss << "tff(axiom_" << instance << "_" << relation << ", axiom," << std::endl 
+  auto position = instance.find_last_of(":/") + 1;
+  auto count = instance.find_first_of("#.") - position;
+  ss << "tff(axiom_" << instance.substr(position, count) << "_" << relation << ", axiom," << std::endl 
      << "  ![X : " << set_klass << ", V : value]: " << std::endl 
      << "  (" << std::endl
-     << "    " << relation << "(X, " << instance_klass << "_" << instance << ", V)" << std::endl
+     << "    " << relation << "(X, '" << instance << "', V)" << std::endl
      << "    =>" << std::endl
      << "    (";
   for (auto [name, value] : set) {
     ss << std::endl
        << "      (" << std::endl
-       << "        (X = " << set_klass << "_" << name << ")" << std::endl
+       << "        (X = '" << name << "')" << std::endl
        << "        &" << std::endl
        << "        (V = '" << value << "')" << std::endl
        << "      )"  << std::endl 
@@ -366,15 +370,8 @@ std::string AgentModel::create_inter_engine_relations(std::set<int> sizes) {
   std::stringstream ss;
   if (items.size() > 1) {
     ss << "tff(axiom_"<< label << ", axiom, $distinct(";
-    if ((klass == "value") || (klass == "requirement_specification"))  {
-      for (std::string item: items) {
-        ss << " '" << item << "',";
-      }
-
-    } else {
-      for (std::string item: items) {
-        ss << " " << klass << "_" << item << ",";
-      }
+    for (std::string item: items) {
+      ss << " '" << item << "',";
     }
     ss.seekp(-1, ss.cur);
     ss << "))." << std::endl;
@@ -388,7 +385,12 @@ std::string AgentModel::create_existence_declarations(std::string klass, std::se
     if ((klass == "value") || (klass == "requirement_specification")) {
       ss << "tff(decl_"<< item.substr(item.rfind("^^xsd:")+6) << ", type, '" << item << "' : " << klass << ")." << std::endl;
     } else {
-      ss << "tff(decl_"<< item << ", type, " << klass << "_" << item << " : " << klass << ")." << std::endl;
+      std::cout << item << std::endl;
+      auto position = item.find_last_of(":/") + 1;
+      auto count = item.find_first_of("#.") - position;
+      ss << "tff(decl_"<< item.substr(position, count) << ", type, '" << item << "' : " << klass << ")." << std::endl;
+    //} else {
+    //  ss << "tff(decl_"<< item << ", type, " << klass << "_" << item << " : " << klass << ")." << std::endl;
     }
   }
   return ss.str();

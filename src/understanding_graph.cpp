@@ -1,6 +1,7 @@
 
 #include "uuid/uuid.h"
-
+#include <iostream>
+#include <algorithm>
 #include "coresense_understanding/understanding_graph.hpp"
 
 using namespace coresense::understanding::graph;
@@ -14,40 +15,8 @@ GraphNode::GraphNode() {
 }
 
 
-//SubsetNode::SubsetNode(std::smatch match)
-//  : GraphNode()
-//  , element{ match[1] }
-//  , set{ match[2] }  {
-//}
-//
-//std::string SubsetNode::print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) {
-//  std::string tree = map[set]->print(map) + map[element]->print(map);
-//  return tree;
-//}
-//
-//std::string SubsetNode::get_id() {
-//  return name + "_" + id;
-//}
-
-
-//ExertNode::ExertNode(std::smatch match)
-//  : GraphNode()
-//  , modelet_set { match[2] } {
-//  name = match[1];
-//}
-//
-//std::string ExertNode::print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) {
-//  std::string tree = map[modelet_set]->print(map) +"      <SubTree ID=\"" + name +"\"/>";
-//  return tree;
-//}
-//
-//std::string ExertNode::get_id() {
-//  return "EXERT_" + name + "_" + id;
-//}
-
-
-ConceptNode::ConceptNode(std::string modelet_name)
-  : GraphNode() {
+ConceptNode::ConceptNode(std::string modelet_name, std::string formalism)
+  : GraphNode(), formalism(formalism) {
   name = modelet_name;
 }
 
@@ -56,17 +25,22 @@ std::string ConceptNode::print(std::unordered_map<std::string, std::shared_ptr<G
 }
 
 std::string ConceptNode::get_id() {
-  return "MODELET_" + name.substr(8) + "_" + id;
+  return "MODELET_" + name + "_" + id;
+}
+
+std::string ConceptNode::get_formalism() {
+  return formalism;
 }
 
 
 ExertnNode::ExertnNode(coresense::understanding::model::Engine engine)
-  : GraphNode(), engine{engine} {
+  : GraphNode(), engine(engine) {
+  name = engine.name.substr(engine.name.rfind(":")+1);
 }
 
 void ExertnNode::add_node(std::shared_ptr<GraphNode> & node) {
   if (node->get_id().rfind("MODELET_", 0) == 0) {
-    modelets.push_back(node->name);
+    modelets.push_back(node->id);
   } else if (node->get_id().rfind("EXERT_", 0) == 0) {
     exerts.push_back(node->id);
     modelets.push_back(node->id);
@@ -80,6 +54,16 @@ std::string ExertnNode::print(std::unordered_map<std::string, std::shared_ptr<Gr
   //  moving in levels down is in fact putting things into the sequence at an earlier spot
   //  so there should only be one sequence? no. if a subtree (in a parallel node) has another subtree, that should be new sequence
   // first: add required subtree exertions, either in parallel or just on a newline in the parent sequence
+  for (auto modelet : modelets) {
+    auto node = map[modelet];
+    if (node->get_id().rfind("MODELET_", 0) == 0) {
+      std::string formalism = node->get_formalism();
+      // spawn get_formalism_modelet actions for the modelets we have to get from the KB
+      formalism = formalism.substr(formalism.rfind(':')+1);
+      std::replace(formalism.begin(), formalism.end(), '/', '_');
+      tree << "<SubTree ID=\"Get" << formalism << "Modelet\" modelet_id=\"<coresense:modelet:" << node->name << ">\" modelet=\"{" << node->name << "_output_" << node->id << "}\"/>" << std::endl;
+    }
+  }
   if (exerts.size() > 1) {
     // this should only happen if modelets are in fact exerts
     tree << "<Parallel failure_count=\"1\" success_count=\"" << exerts.size() << "\">" << std::endl;
@@ -92,26 +76,21 @@ std::string ExertnNode::print(std::unordered_map<std::string, std::shared_ptr<Gr
   } else if (!exerts.empty()) {
     tree << map[exerts[0]]->print(map) << std::endl;
   } 
-  tree << "<SubTree ID=\"" << engine.name << "\" " << engine.engine_output.name << "=\"" << get_id() << "_output\" ";
-  //tree << map[modelets[0]]->print(map) << std::endl << "<SubTree ID='" << map[modelets[0]]->get_id()  << "' ";
+  tree << "<SubTree ID=\"" << name << "\" " << engine.engine_output.name.substr(engine.engine_output.name.rfind(':')+1) << "=\"{" << name << "_output_" << id << "}\" ";
   int count = 0;
-  //int count = 1;
   for (auto modelet : modelets) {
-    //TODO PRIORITY: fix naming of classes within tptp (unique per class) and without 
     std::string name = engine.inputs[count++].name;
-    tree << name << "=\"{" << map[modelet]->get_id() << "_output}\" ";
-    //tree << "port_" << count++ << "=\"{" << map[modelet]->get_id() << "_port}\" ";
+    name = name.substr(name.rfind(":")+1);
+    tree << name << "=\"{" << map[modelet]->name << "_output_" << map[modelet]->id << "}\" ";
   }
-
-  //for (auto exert : exerts) {
-  //  tree << map[exert]->get_id() << "_port='{" << map[exert]->get_id() << "_port}' ";
-  //}
   tree << "/>";
-  //std::cout << tree.str() << std::endl;
-  //tree << subtree_port_name << "='{" << parent_tree_output_port_name << "}'" << subtree_output_port_name << "='{" << id << "}'/>\n";
   return tree.str();
 }
 
 std::string ExertnNode::get_id() {
-  return "EXERT_" + engine.name + "_" + id;
+  return "EXERT_" + name + "_" + id;
+}
+
+std::string ExertnNode::get_formalism() {
+  return "Engines dont have formalisms: " + engine.name;
 }
