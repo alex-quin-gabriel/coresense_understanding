@@ -55,6 +55,17 @@ def generate_launch_description():
         output='screen',
     )
 
+    bt_controller_node = Node(
+        package='coresense_bt_controller',
+        executable='bt_controller',
+        parameters=[PathJoinSubstitution([
+            FindPackageShare('coresense_understanding_bringup'), 'config', 'bt_controller.yaml'])
+        ],
+        name='bt_controller',
+        namespace='',
+        output='screen',
+    )
+
 
     return LaunchDescription(
         [
@@ -63,6 +74,7 @@ def generate_launch_description():
                 PathJoinSubstitution([FindPackageShare('coresense_bringup'), 'launch', 'kb.launch.py']),
                 launch_arguments={'bringup_package': 'coresense_understanding_bringup'}.items()
             ),
+            bt_controller_node,
             coresense_requirement_enforcer_node,
             coresense_vampire_node,
             coresense_understanding_node

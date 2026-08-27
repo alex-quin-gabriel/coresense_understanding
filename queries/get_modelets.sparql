@@ -3,21 +3,23 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>
 PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+PREFIX ros: <https://github.com/ros2#>
 
 SELECT *
 WHERE {
-  ?modelet rdf:type cso:Modelet;
+  ?modelet_id rdf:type cso:Modelet;
     csu:hasFormalism ?formalism.
-  OPTIONAL { ?modelet csu:modelsConcept ?concept. }
-  OPTIONAL { ?modelet csu:hasRepresentationClass ?representationClass. }
+  OPTIONAL { ?modelet_id csu:annotatesModelet ?modelet_serialized. }
+  OPTIONAL { ?modelet_id csu:modelsConcept ?concept. }
+  OPTIONAL { ?modelet_id csu:hasRepresentationClass ?representationClass. }
   OPTIONAL {
-    ?modelet csu:hasProperty ?property.
+    ?modelet_id csu:hasProperty ?property.
     ?property a ?propertyClass.
     ?property csu:hasValue ?propertyValue.
   }
 }
 
 #    ?property csu:hasClass ?propertyClass;
-#  OPTIONAL { ?modelet csu:hasCreator ?creator. }
-#  OPTIONAL { ?modelet csu:hasLocation ?location. }
-#  OPTIONAL { ?modelet csu:hasScope ?scope. }
+#  OPTIONAL { ?modelet_id csu:hasCreator ?creator. }
+#  OPTIONAL { ?modelet_id csu:hasLocation ?location. }
+#  OPTIONAL { ?modelet_id csu:hasScope ?scope. }

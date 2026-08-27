@@ -55,3 +55,8 @@ csu:hasClass a rdf:Property;
 csu:hasValue a rdf:Property;
   rdfs:domain csu:Property;
   rdfs:range rdf:literal.
+
+csu:annotatesModelet a rdf:Property;
+  rdfs:domain csu:Property;
+  rdfs:range xsd:string.
+

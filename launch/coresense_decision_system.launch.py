@@ -307,7 +307,7 @@ def generate_launch_description():
             #triplestar_core_node_config_event,
             #triplestar_core_node_activate_event,
             #coresense_vampire_node,
-            bt_executor_node
+            #bt_executor_node
             #coresense_understanding_node
             # start_marker_publisher,
             #viz_node,
