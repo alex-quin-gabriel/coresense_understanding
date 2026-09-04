@@ -1,0 +1,75 @@
+#ifndef CS_UNDERSTANDING_GET_RANGE_MODELET_HPP_
+#define CS_UNDERSTANDING_GET_RANGE_MODELET_HPP_
+
+#include "ament_index_cpp/get_package_share_directory.hpp"
+
+#include "{{ package }}/msg/{{ name }}.hpp"
+#include "triplestar_msgs/srv/select_query.hpp"
+#include <behaviortree_ros2/bt_service_node.hpp>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+
+
+class Get{{ package }}_{{ name_camel }}ModeletNode : public BT::RosServiceNode<triplestar_msgs::srv::SelectQuery>
+{
+public:
+  explicit Get{{ package }}_{{ name_camel }}ModeletNode(const std::string& name, const BT::NodeConfig& config,
+               const BT::RosNodeParams& params)
+    : BT::RosServiceNode<triplestar_msgs::srv::SelectQuery>(name, config, params)
+  {
+    setServiceName("/triplestar/query/get_modelets");
+  }
+
+  /**
+   * @brief Required method that creates list of BT ports
+   *
+   * Must call providedBasicPorts in it.
+   *
+   * @return PortsList Containing basic ports along with node-specific ports
+   */
+  static BT::PortsList providedPorts()
+  {    
+    return providedBasicPorts({ 
+        BT::InputPort<std::string>(
+          "modelet_id",
+          "ID of modelet to retrieve"),
+        BT::OutputPort<{{ package }}::msg::{{ name_camel }}>(
+            "modelet",
+            "Retrieved modelet")
+        });
+  }
+
+  void set_coresense_parameter();
+  /** 
+   * @brief Required callback that allows the user to set the goal message.
+   *
+   * @param goal The goal to be sent to the action server.
+   *
+   * @return false if the request should not be sent. In that case,
+   * RosActionNode::onFailure(INVALID_GOAL) will be called.
+   */
+  bool setRequest(Request::SharedPtr& request) override;
+
+  /** 
+   * @brief Required callback invoked when the result is received by the server.
+   * 
+   * It is up to the user to define if the action returns SUCCESS or FAILURE.
+   */
+  BT::NodeStatus onResponseReceived(const Response::SharedPtr& response) override;
+
+  /**
+   * @brief Optional callback invoked when something goes wrong. 
+   *
+   * It must return either SUCCESS or FAILURE.
+   */
+  BT::NodeStatus onFailure(BT::ServiceNodeErrorCode error) override;
+
+  {{ package }}::msg::{{ name_camel }} create_modelet_from_json(std::string json_string);
+
+private:
+
+};
+
+#endif
