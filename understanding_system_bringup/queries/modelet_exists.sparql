@@ -1,0 +1,37 @@
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cs: <http://coresense.eu/ont/>
+
+
+ASK
+WHERE {
+  ?modelet
+    cs:formalism cs:ROSMessage:Sample
+    cs:pmc cs:pmc:modelet; // processing model
+    cs:pmc cs:pmc:sample; // processing model
+    cs:wmc flower; // world model
+    cs:models model_id;
+    cs:has_property ?p1;
+    cs:has_concept cs:concept:c1;
+    cs:has_concept cs:concept:c2;
+    cs:has_scope ?scope;
+    cs:has_location ?loc.
+  ?loc
+    cs:x ?lx;
+    FILTER(?lx < 5);
+    FILTER(?lx > 2);
+    cs:y ?ly;
+    cs:z ?lz;
+    cs:t ?lt;
+    FILTER(?lt > 278261487325).
+  ?scope
+    cs:x ?sx;
+    cs:y ?sy;
+    cs:z ?sz;
+    cs:t ?st;
+    FILTER(?st > 2).
+  ?p1
+    cs:property:dataype float;
+    cs:property:value ?v;
+    FILTER (?v < 3.1415).
+}

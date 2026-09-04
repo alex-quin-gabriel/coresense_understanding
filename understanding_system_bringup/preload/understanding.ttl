@@ -1,0 +1,62 @@
+@prefix cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>.
+@prefix csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>.
+@prefix iso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/ISO/iso.sysml#>.
+@prefix ros: <https://ros.org#>.
+@prefix geo: <http://www.opengis.net/ont/geosparql#>.
+@prefix dmci-terms: <http://purl.org/dc/terms/>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#>.
+
+
+#csu:t rdf:type rdf:Property;
+csu:datetime rdfs:subPropertyOf dmci-terms:date;
+  rdfs:domain cso:Modelet;
+  rdfs:range xsd:integer.
+
+csu:Formalism rdfs:subClassOf iso:Model. #this is not a model but a language
+csu:hasFormalism rdfs:subPropertyOf dmci-terms:format;
+  rdfs:domain cso:Modelet;
+  rdfs:range csu:Formalism.
+
+# csu:Location rdfs:subClassOf iso:Entity. # space? point? coordinate? what structure does {{ msg.pose | rdf }} create?
+# csu:hasLocation rdf:type rdf:Property;
+#   rdfs:domain cso:Modelet;
+#   rdfs:range geo:wktLiteral.
+# 
+# csu:Scope rdfs:subClassOf iso:Entity. # space? range? polygon? what structure does {{ msg.pose | rdf }} create?
+# csu:hasScope rdfs:subPropertyOf dmci-terms:extent;
+#   rdfs:domain cso:Modelet;
+#   rdfs:range dmci-terms:Extent.
+
+csu:RepresentationClass rdfs:subClassOf iso:Entity.
+csu:modelsConcept rdf:type rdf:Property;
+  rdfs:domain cso:Modelet;
+  rdfs:range csu:Concept.
+
+csu:hasRepresentationClass rdf:type rdf:Property;
+  rdfs:domain cso:Modelet;
+  rdfs:range csu:RepresentationClass.
+
+csu:ID rdfs:subClassOf iso:Model.
+csu:hasID rdfs:subPropertyOf dmci-terms:identifier;
+  rdfs:domain cso:Modelet;
+  rdfs:range csu:ID.
+
+csu:Property rdfs:subClassOf iso:Attribute.
+csu:hasProperty a rdf:Property;
+  rdfs:domain cso:Modelet;
+  rdfs:range csu:Property.
+
+csu:hasClass a rdf:Property;
+  rdfs:domain csu:Property;
+  rdfs:range xsd:string.
+
+csu:hasValue a rdf:Property;
+  rdfs:domain csu:Property;
+  rdfs:range rdf:literal.
+
+csu:annotatesModelet a rdf:Property;
+  rdfs:domain csu:Property;
+  rdfs:range xsd:string.
+

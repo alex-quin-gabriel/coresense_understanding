@@ -1,0 +1,33 @@
+
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#>.
+@prefix cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>.
+@prefix csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix ds: <https://coresense.eu/ont/decision_system#>.
+
+@prefix msg: <ros:msg:>.
+@prefix action: <ros:action:>.
+@prefix srv: <ros:service:>.
+
+@prefix rc: <coresense:representation_class:>.
+@prefix prop: <coresense:property:>.
+@prefix modelet: <coresense:modelet:>.
+@prefix engine: <coresense:engine:>.
+
+prop:Ordered rdfs:subClassOf csu:Property.
+
+ds:given_cues_is_list a prop:Ordered;
+  csu:hasValue "true"^^xsd:boolean.
+
+modelet:given_cues a cso:Modelet;
+  csu:hasFormalism msg:decision_msgs\/msg\/CueArray;
+  csu:hasRepresentationClass rc:cue_array;
+  csu:hasProperty ds:given_cues_is_list;
+  csu:annotatesModelet "AAEAAAIAAAACAAAAcgAAAAIAAABnAA=="^^xsd:string.
+
+modelet:given_alternatives a cso:Modelet;
+  csu:hasFormalism msg:decision_msgs\/msg\/AlternativeArray;
+  csu:hasRepresentationClass rc:choice_set;
+  csu:hasRepresentationClass rc:alternative_array;
+  csu:annotatesModelet "AAEAAAMAAAAEAAAAcmVkAAUAAABibHVlAD1hbAgAAAAjODA4MDA2AA=="^^xsd:string.

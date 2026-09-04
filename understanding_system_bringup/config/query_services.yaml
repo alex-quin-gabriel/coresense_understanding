@@ -1,0 +1,22 @@
+query_services:
+  modelet_exists:
+      query_file: modelet_exists.sparql
+
+  concept_query:
+      query_file: get_concepts.sparql
+
+  representation_class_query:
+      query_file: get_representation_classes.sparql
+
+  formalism_query:
+      query_file: get_formalisms.sparql
+
+  property_query:
+      query_file: get_properties.sparql
+
+  requirement_query:
+      query_file: get_requirements.sparql
+
+  get_modelets:
+      query_file: get_modelets.sparql
+

@@ -1,0 +1,40 @@
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>
+PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+
+# Example SPARQL insertion template using Jinja2 syntax.
+#
+# The 'msg' variable contains the incoming ROS message.
+# Use the rdf filter to convert ROS values to RDF literals.
+#
+# Customize this template for your specific message type and topic.
+
+{% for detection in msg.detections %}
+INSERT DATA {
+  yolo_detection_{{ detection.id | rdf}}_modelet rdf:type cso:Modelet;
+    csu:annotatesModelet "{{ msg | serialize }}"^^xsd:string;
+    csu:hasFormalism yolo_msgs_Detection_msg;
+    csu:hasRepresentationClass yoloDetection_rc;
+    csu:hasCreationTime {{ msg.header.stamp | rdf }};
+    csu:modelsConcept yolo_class_name_{{ detection.class_name }}_concept;
+    csu:modelsConcept yolo_class_id_{{ detection.class_id }}_concept;
+    csu:fromFrame {{ msg.header.frame_id | rdf }};
+    {% if detection.bbox %}
+    csu:hasLocation {{ detection.bbox.center | rdf }};
+    csu:hasScope {{ detection.bbox.size | rdf }};
+    {% else %}
+    {% if detection.bbox3d %}
+    csu:hasLocation {{ detection.bbox3d.center | rdf }};
+    csu:hasScope {{ detection.bbox3d.size | rdf }};
+    {% endif %}
+    {% endif %}
+    csu:hasCreator yolo_engine;
+    csu:hasProperty yolo_score_property.
+  yolo_score_property cso:Property;
+    csu:hasType "float64";
+    csu:hasValue ?propertyValue.
+}
+
+{% endfor %}

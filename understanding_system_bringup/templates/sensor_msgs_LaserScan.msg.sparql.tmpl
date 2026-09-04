@@ -1,0 +1,50 @@
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>
+PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+
+# Example SPARQL insertion template using Jinja2 syntax.
+#
+# The 'msg' variable contains the incoming ROS message.
+# Use the rdf filter to convert ROS values to RDF literals.
+#
+# Customize this template for your specific message type and topic.
+
+INSERT DATA {
+  image_{{ msg.header.seq | rdf }}_modelet rdf:type cso:Modelet;
+    csu:annotatesModelet "{{ msg | serialize }}"^^xsd:string;
+    csu:hasFormalism sensor_msgs_LaserScan_msg;
+    csu:hasRepresentationClass laserscan_rc;
+    csu:hasCreationTime {{ msg.header.stamp | rdf }};
+    csu:fromFrame {{ msg.header.frame_id | rdf }};
+    csu:hasProperty laserscan_angle_min_property;
+    csu:hasProperty laserscan_angle_max_property;
+    csu:hasProperty laserscan_angle_increment_property;
+    csu:hasProperty laserscan_time_increment_property;
+    csu:hasProperty laserscan_scan_time_property;
+    csu:hasProperty laserscan_range_min_property;
+    csu:hasProperty laserscan_range_max_property.
+  laserscan_angle_min_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.angle_min | rdf }}.
+  laserscan_angle_max_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.angle_max | rdf }}.
+  laserscan_angle_increment_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.angle_increment | rdf }}.
+  laserscan_time_increment_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.time_increment | rdf }}.
+  laserscan_scan_time_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.scan_time | rdf }}.
+  laserscan_range_min_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.range_min | rdf }}.
+  laserscan_range_max_property cso:Property;
+    csu:hasType "float";
+    csu:hasValue {{ msg.range_max | rdf }}.
+#not modeled so far: float[] msg.ranges, float[] msg.intensities (the actual model) 
+}

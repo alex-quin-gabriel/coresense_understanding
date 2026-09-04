@@ -1,0 +1,8 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+
+SELECT DISTINCT *
+WHERE {
+  ?concept rdf:type csu:Concept.
+}
+

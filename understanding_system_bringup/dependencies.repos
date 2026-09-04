@@ -1,0 +1,15 @@
+repositories:
+  coresense_msgs:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_msgs.git
+    version: main
+  coresense_bringup:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_bringup.git
+    version: main
+    import: dependencies.repos
+  coresense_understanding:
+    type: git
+    url: https://github.com/CoreSenseEU/coresense_understanding.git
+    version: main
+    import: dependencies.repos

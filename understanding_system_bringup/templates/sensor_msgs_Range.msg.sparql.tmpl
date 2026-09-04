@@ -1,0 +1,24 @@
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>
+PREFIX csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>
+PREFIX ros: <https://github.com/ros2#>
+
+# Example SPARQL insertion template using Jinja2 syntax.
+#
+# The 'msg' variable contains the incoming ROS message.
+# Use the rdf filter to convert ROS values to RDF literals.
+#
+# Customize this template for your specific message type and topic.
+
+INSERT DATA {
+  ros:range_{{ msg.header.stamp.sec }}_modelet rdf:type cso:Modelet;
+  #ros:range_123456789_modelet rdf:type cso:Modelet;
+    csu:hasFormalism ros:sensor_msgs_Range_msg;
+    csu:hasRepresentationClass ros:range;
+    csu:modelsConcept ros:distance;
+    csu:hasCreationTime {{ msg.header.stamp | rdf }};
+    csu:fromFrame {{ msg.header.frame_id | rdf }};
+    csu:annotatesModelet "{{ msg | serialize }}"^^xsd:string.
+}

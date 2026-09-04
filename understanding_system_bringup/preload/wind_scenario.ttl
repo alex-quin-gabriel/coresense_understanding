@@ -1,0 +1,38 @@
+
+@prefix sc: <https://coresense.eu/ont/scenarios#>.
+@prefix cso: <https://github.com/CoreSenseEU/CoreSense/blob/main/models/ontology/coresense_ontologies/CSO/cso.sysml#>.
+@prefix csu: <https://github.com/CoreSenseEU/coresense_understanding_bringup/blob/main/preload/understanding.ttl#>.
+@prefix ros: <https://ros.org#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+
+sc:trajectory a csu:Concept.
+sc:wind a csu:Concept.
+sc:path a csu:Concept.
+
+sc:vector a csu:RepresentationClass.
+
+#sc:windEstimationMsg a csu:Formalism.
+ros:Message rdfs:subClassOf csu:Formalism.
+sc:windEstimationMsg a ros:Message.
+sc:trajectoryMsg a ros:Message.
+
+
+sc:windPropertyReal a csu:Property;
+  csu:hasName "wind_property_real";
+  csu:hasType "real";
+  csu:hasValue "0.0".
+
+sc:windModelet a cso:Modelet.
+sc:windModelet csu:hasFormalism sc:windEstimationMsg.
+sc:windModelet csu:modelsConcept sc:wind.
+sc:windModelet csu:hasRepresentationClass sc:vector.
+
+sc:windModelet csu:hasProperty sc:windPropertyReal.
+
+sc:trajectoryModelet a cso:Modelet.
+sc:trajectoryModelet csu:hasFormalism sc:trajectoryMsg.
+sc:trajectoryModelet csu:modelsConcept sc:trajectory.
+sc:trajectoryModelet csu:modelsConcept sc:path.
+sc:trajectoryModelet csu:hasRepresentationClass sc:vector.
