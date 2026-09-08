@@ -1,3 +1,3 @@
 [submodule "understanding-logic"]
-	path = understanding_system/understanding-logic
+	path = coresense_understanding_system/understanding-logic
 	url = https://github.com/CoreSenseEU/understanding-logic
