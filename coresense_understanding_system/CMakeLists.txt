@@ -98,7 +98,7 @@ target_link_libraries(understanding_system_node PUBLIC
   rclcpp_action::rclcpp_action
   )
 
-ament_python_install_package(${PROJECT_NAME})
+  #ament_python_install_package(${PROJECT_NAME})
 
 # install python node
 install(PROGRAMS
