@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(coresense_understanding)
+project(coresense_understanding_system)
 
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
