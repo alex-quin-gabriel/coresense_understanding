@@ -26,7 +26,7 @@ def generate_launch_description():
     log_level = LaunchConfiguration('log-level', default='info')
 
     config = os.path.join(
-        get_package_share_directory('coresense_understanding_bringup'),
+        get_package_share_directory('coresense_understanding_system_bringup'),
         'config',
         'kb_params.yaml',
     )
@@ -94,9 +94,9 @@ def generate_launch_description():
     )
 
     coresense_understanding_node = Node(
-        package='coresense_understanding',
+        package='coresense_understanding_system',
         executable='understanding_system_node',
-        name='coresense_understanding',
+        name='coresense_understanding_system',
         namespace='',
         output='screen',
     )

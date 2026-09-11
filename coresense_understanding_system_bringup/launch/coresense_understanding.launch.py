@@ -31,7 +31,7 @@ def generate_launch_description():
     log_level = LaunchConfiguration('log-level', default='info')
 
     coresense_requirement_enforcer_node = Node(
-        package='coresense_understanding',
+        package='coresense_understanding_system',
         executable='requirement_enforcer_node',
         name='requirement_enforcer',
         namespace='',
@@ -48,9 +48,9 @@ def generate_launch_description():
     )
 
     coresense_understanding_node = Node(
-        package='coresense_understanding',
+        package='coresense_understanding_system',
         executable='understanding_system_node',
-        name='coresense_understanding',
+        name='coresense_understanding_system',
         namespace='',
         output='screen',
     )
@@ -59,7 +59,7 @@ def generate_launch_description():
         package='coresense_bt_controller',
         executable='bt_controller',
         parameters=[PathJoinSubstitution([
-            FindPackageShare('coresense_understanding_bringup'), 'config', 'bt_controller.yaml'])
+            FindPackageShare('coresense_understanding_system_bringup'), 'config', 'bt_controller.yaml'])
         ],
         name='bt_controller',
         namespace='',
@@ -72,7 +72,7 @@ def generate_launch_description():
             log_level_arg,
             IncludeLaunchDescription(
                 PathJoinSubstitution([FindPackageShare('coresense_bringup'), 'launch', 'kb.launch.py']),
-                launch_arguments={'bringup_package': 'coresense_understanding_bringup'}.items()
+                launch_arguments={'bringup_package': 'coresense_understanding_system_bringup'}.items()
             ),
             bt_controller_node,
             coresense_requirement_enforcer_node,
