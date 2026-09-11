@@ -1,11 +1,13 @@
-
-#include "coresense_understanding/agent_model.hpp"
 #include <iostream>
+#include <string>
+#include <set>
+#include "coresense_understanding_system/agent_model.hpp"
+
 namespace coresense::understanding::agent_model {
 
-std::string create_relation_limit2(std::string relation, std::string instance_klass, std::string instance, std::string set_klass,  std::set<std::string> set) {
+std::string create_relation_limit2(std::string relation, std::string instance_klass, std::string instance, std::string set_klass, std::set<std::string> set) {
   std::stringstream ss;
-  auto position = instance.find_last_of(":/") + 1;
+  int position = instance.find_last_of(":/") + 1;
   auto count = instance.find_first_of("#.") - position;
   ss << "tff(axiom_" << instance.substr(position, count) << "_" << relation << ", axiom," << std::endl 
      << "  ![X : " << set_klass << "]: " << std::endl 
@@ -21,7 +23,7 @@ std::string create_relation_limit2(std::string relation, std::string instance_kl
   return ss.str();
 }
 
-std::string create_relation_limit3(std::string relation, std::string instance_klass, std::string instance, std::string set_klass,  std::set<std::pair<std::string, std::string>> set) {
+std::string create_relation_limit3(std::string relation, std::string instance_klass, std::string instance, std::string set_klass, std::set<std::pair<std::string, std::string>> set) {
   std::stringstream ss;
   auto position = instance.find_last_of(":/") + 1;
   auto count = instance.find_first_of("#.") - position;

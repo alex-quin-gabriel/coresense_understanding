@@ -1,4 +1,4 @@
-#include "coresense_understanding/knowledge_model.hpp"
+#include "coresense_understanding_system/knowledge_model.hpp"
 
 namespace coresense::understanding::knowledge_model {
 

@@ -4,7 +4,7 @@
 #include <chrono>
 #include <nlohmann/json.hpp>
 
-#include <coresense_understanding/model.hpp>
+#include "coresense_understanding_system/model.hpp"
 
 
 namespace coresense::understanding::agent_model {

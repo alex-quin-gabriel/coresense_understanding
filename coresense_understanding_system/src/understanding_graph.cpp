@@ -2,7 +2,7 @@
 #include "uuid/uuid.h"
 #include <iostream>
 #include <algorithm>
-#include "coresense_understanding/understanding_graph.hpp"
+#include "coresense_understanding_system/understanding_graph.hpp"
 
 using namespace coresense::understanding::graph;
 
@@ -14,14 +14,23 @@ GraphNode::GraphNode() {
   id = std::string(tmp);
 }
 
+ConceptNode::ConceptNode(coresense::understanding::model::Modelet modelet)
+  : GraphNode() {
+  name = modelet.name;
+  formalism = modelet.formalism;
+}
 
 ConceptNode::ConceptNode(std::string modelet_name, std::string formalism)
   : GraphNode(), formalism(formalism) {
   name = modelet_name;
 }
 
-std::string ConceptNode::print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) {
-  return name;
+std::string ConceptNode::print() {
+  std::ostringstream tree;
+  std::string _formalism = formalism.substr(formalism.rfind(':')+1);
+  std::replace(_formalism.begin(), _formalism.end(), '/', '_');
+  tree << "<SubTree ID=\"Get" << _formalism << "Modelet\" modelet_id=\"<coresense:modelet:" << name << ">\" modelet=\"{" << name << "_output_" << id << "}\"/>";
+  return tree.str();
 }
 
 std::string ConceptNode::get_id() {
@@ -39,6 +48,7 @@ ExertnNode::ExertnNode(coresense::understanding::model::Engine engine)
 }
 
 void ExertnNode::add_node(std::shared_ptr<GraphNode> & node) {
+  children.push_back(node);
   if (node->get_id().rfind("MODELET_", 0) == 0) {
     modelets.push_back(node->id);
   } else if (node->get_id().rfind("EXERT_", 0) == 0) {
@@ -47,41 +57,47 @@ void ExertnNode::add_node(std::shared_ptr<GraphNode> & node) {
   }
 }
 
-std::string ExertnNode::print(std::unordered_map<std::string, std::shared_ptr<GraphNode>> & map) {
+std::string ExertnNode::print() {
   std::ostringstream tree;
-  //TODO think about where sequence nodes are put
-  //  top level sequence
-  //  moving in levels down is in fact putting things into the sequence at an earlier spot
-  //  so there should only be one sequence? no. if a subtree (in a parallel node) has another subtree, that should be new sequence
-  // first: add required subtree exertions, either in parallel or just on a newline in the parent sequence
-  for (auto modelet : modelets) {
-    auto node = map[modelet];
-    if (node->get_id().rfind("MODELET_", 0) == 0) {
-      std::string formalism = node->get_formalism();
-      // spawn get_formalism_modelet actions for the modelets we have to get from the KB
-      formalism = formalism.substr(formalism.rfind(':')+1);
-      std::replace(formalism.begin(), formalism.end(), '/', '_');
-      tree << "<SubTree ID=\"Get" << formalism << "Modelet\" modelet_id=\"<coresense:modelet:" << node->name << ">\" modelet=\"{" << node->name << "_output_" << node->id << "}\"/>" << std::endl;
-    }
+  bool multiple_children = children.size() > 1;
+  if (multiple_children) {
+    tree << "<Parallel failure_count=\"1\" success_count=\"" << children.size() << "\">" << std::endl;
   }
-  if (exerts.size() > 1) {
-    // this should only happen if modelets are in fact exerts
-    tree << "<Parallel failure_count=\"1\" success_count=\"" << exerts.size() << "\">" << std::endl;
-    for (auto exert : exerts) {
-      tree << "<Sequence>" << std::endl;
-      tree << map[exert]->print(map) << std::endl;
-      tree << "</Sequence>" << std::endl;
+  for (const std::shared_ptr<GraphNode> child : children) {
+    if (multiple_children) {
+      tree << "<Sequence>";
     }
+    tree << child->print();
+    if (multiple_children) {
+      tree << "</Sequence>" << std::endl;
+    } else {
+      tree << std::endl;
+
+    }
+//    if (typeid(*child) == typeid(ExertnNode)) {
+//     auto child_engine = std::dynamic_pointer_cast<ExertnNode>(child);
+//      tree << child_engine->print();
+      // exert child
+//    } else if (typeid(*child) == typeid(ConceptNode)) {
+//      auto child_concept = std::dynamic_pointer_cast<ConceptNode>(child);
+//      tree << child_concept.get_bt_line();
+//    }
+  }
+  if (multiple_children) {
     tree << "</Parallel>" << std::endl;
-  } else if (!exerts.empty()) {
-    tree << map[exerts[0]]->print(map) << std::endl;
-  } 
+  }
+  tree << get_bt_line();
+  return tree.str();
+}
+
+std::string ExertnNode::get_bt_line() {
+  std::ostringstream tree;
   tree << "<SubTree ID=\"" << name << "\" " << engine.engine_output.name.substr(engine.engine_output.name.rfind(':')+1) << "=\"{" << name << "_output_" << id << "}\" ";
   int count = 0;
-  for (auto modelet : modelets) {
+  for (auto child : children) {
     std::string name = engine.inputs[count++].name;
     name = name.substr(name.rfind(":")+1);
-    tree << name << "=\"{" << map[modelet]->name << "_output_" << map[modelet]->id << "}\" ";
+    tree << name << "=\"{" << child->name << "_output_" << child->id << "}\" ";
   }
   tree << "/>";
   return tree.str();
@@ -91,6 +107,21 @@ std::string ExertnNode::get_id() {
   return "EXERT_" + name + "_" + id;
 }
 
-std::string ExertnNode::get_formalism() {
-  return "Engines dont have formalisms: " + engine.name;
+namespace coresense::understanding::graph {
+bool similar(const std::shared_ptr<GraphNode>& lhs, const std::shared_ptr<GraphNode>& rhs) {
+  return typeid(*lhs) == typeid(*rhs) && lhs->isSimilarTo(*rhs);
+}
+
+}
+
+bool ConceptNode::isSimilarTo(const GraphNode& other) const {
+  auto other_engine = dynamic_cast<const ConceptNode&>(other);
+  return formalism == other_engine.formalism;
+}
+
+
+bool ExertnNode::isSimilarTo(const GraphNode& other) const {
+  auto other_engine = dynamic_cast<const ExertnNode&>(other);
+
+  return name == other_engine.name && std::equal(children.begin(), children.end(), other_engine.children.begin(), similar);
 }

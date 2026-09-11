@@ -24,13 +24,13 @@
 
 #include "coresense_msgs/msg/understanding_solution.hpp"
 
-#include "coresense_understanding/model.hpp"
-#include "coresense_understanding/agent_model.hpp"
-#include "coresense_understanding/knowledge_model.hpp"
-#include "coresense_understanding/understanding_graph.hpp"
-#include "coresense_understanding/theory.hpp"
-#include "coresense_understanding/vampire_interface.hpp"
-#include "coresense_understanding/session.hpp"
+#include "coresense_understanding_system/model.hpp"
+#include "coresense_understanding_system/agent_model.hpp"
+#include "coresense_understanding_system/knowledge_model.hpp"
+#include "coresense_understanding_system/understanding_graph.hpp"
+#include "coresense_understanding_system/theory.hpp"
+#include "coresense_understanding_system/vampire_interface.hpp"
+#include "coresense_understanding_system/session.hpp"
 
 #include "triplestar_msgs/srv/sparql_query.hpp"
 #include "triplestar_msgs/srv/select_query.hpp"
@@ -38,6 +38,7 @@
 using namespace std::chrono_literals;
 namespace ns_vampire = coresense::understanding::interfaces::vampire;
 namespace ns_theory = coresense::understanding::theory;
+namespace ns_graph = coresense::understanding::graph;
 
 class Problem {
 public:
@@ -102,6 +103,7 @@ public:
       std::bind(&UnderstandingSystemNode::handle_accepted, this, std::placeholders::_1));
       RCLCPP_INFO(get_logger(), "Created understanding action");
     }
+    interfaces::vampire::VampireInterface();
     read_logic();
     start_session_server_ptr = create_service<coresense_msgs::srv::StartSession>("/coresense/understanding/start_session", std::bind(&UnderstandingSystemNode::start_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     end_session_server_ptr = create_service<coresense_msgs::srv::EndSession>("/coresense/understanding/end_session", std::bind(&UnderstandingSystemNode::end_session, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -133,7 +135,7 @@ private:
   std::chrono::seconds agent_model_update_interval = std::chrono::seconds(5);
   coresense::understanding::knowledge_model::KnowledgeModel knowledge_model;
   std::chrono::seconds knowledge_model_update_interval = std::chrono::seconds(1);
-  ns_theory::TheoryReader theory_reader{std::filesystem::path(ament_index_cpp::get_package_share_directory("coresense_understanding"))};
+  ns_theory::TheoryReader theory_reader{std::filesystem::path(ament_index_cpp::get_package_share_directory("coresense_understanding_system"))};
   ns_vampire::VampireInterface vampire_interface;
 
   std::map<std::string, rclcpp::Client<triplestar_msgs::srv::SelectQuery>::SharedPtr> selectQueryClients;
@@ -147,7 +149,7 @@ private:
 
 
   void set_coresense_parameter() {
-    const std::string path = ament_index_cpp::get_package_share_directory("coresense_understanding") + "/config/coresense_engine.json";
+    const std::string path = ament_index_cpp::get_package_share_directory("coresense_understanding_system") + "/config/coresense_engine.json";
     const std::ifstream input_stream(path, std::ios_base::binary);
 
     if (input_stream.fail()) {
@@ -159,7 +161,7 @@ private:
   }
   
   void read_logic() {
-    theory_reader.read_package_logic(ament_index_cpp::get_package_share_directory("coresense_understanding"), "understanding-logic/tff/model");
+    theory_reader.read_package_logic(ament_index_cpp::get_package_share_directory("coresense_understanding_system"), "understanding-logic/tff/model");
   }
 
   void dump_string(std::string path, std::string content) {
@@ -491,13 +493,16 @@ private:
             RCLCPP_WARN(get_logger(), "Result message is: %s", wrapped_result.result->code_msg.c_str());
             RCLCPP_WARN(get_logger(), "Reasoner output is:\n%s", wrapped_result.result->result.c_str());
           }
-          std::map<std::string, std::string> trees = vampire_interface.parse_output(agent_model.engines, wrapped_result.result->result);
+          //std::map<std::string, std::string> trees = vampire_interface.parse_output(agent_model.engines, wrapped_result.result->result);
+          std::map<std::string, std::shared_ptr<ns_graph::GraphNode>> trees = vampire_interface.parse_output(agent_model.engines, wrapped_result.result->result);
+          RCLCPP_INFO(get_logger(), "%d Solutions found.", trees.size());
 
           for (auto [id, tree] : trees) {
             auto understanding_solution = coresense_msgs::msg::UnderstandingSolution();
             understanding_solution.id = id;
-            understanding_solution.tree = tree;
-            RCLCPP_INFO(get_logger(), "Resulting tree is:\n%s", tree.c_str());
+            //understanding_solution.tree = tree;
+            understanding_solution.tree = vampire_interface.build_behavior_tree(tree);
+            RCLCPP_INFO(get_logger(), "Solution %s tree is:\n%s", understanding_solution.id.c_str(), understanding_solution.tree.c_str());
             understanding_result->solutions.push_back(understanding_solution);
           }
 

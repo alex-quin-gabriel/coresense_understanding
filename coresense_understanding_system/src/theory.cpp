@@ -6,8 +6,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include <coresense_understanding/theory.hpp>
-#include <coresense_understanding/model.hpp>
+#include "coresense_understanding_system/theory.hpp"
+#include "coresense_understanding_system/model.hpp"
 
 using namespace coresense::understanding::model;
 

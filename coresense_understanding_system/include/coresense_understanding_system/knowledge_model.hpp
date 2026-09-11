@@ -6,7 +6,7 @@
 #include <list>
 #include <nlohmann/json.hpp>
 
-#include <coresense_understanding/model.hpp>
+#include "coresense_understanding_system/model.hpp"
 
 namespace coresense::understanding::knowledge_model {
 class KnowledgeModel {
